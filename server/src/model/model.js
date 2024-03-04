@@ -1,23 +1,23 @@
 const mongoose = require("mongoose");
 
 const energyOutlookSchema = new mongoose.Schema({
-  end_year: String,
   intensity: Number,
+  url: String,
+  relevance: Number,
+  pestle: String,
   sector: String,
   topic: String,
   insight: String,
-  url: String,
-  region: String,
-  start_year: String,
+  start_year: Date,
   impact: String,
-  added: String,
-  published: String,
-  country: String,
-  relevance: Number,
-  pestle: String,
+  added: Date,
+  end_year: Date,
+  region: String,
   source: String,
   title: String,
   likelihood: Number,
+  published: Date,
+  country: String
 });
 
-module.exports = mongoose.model("EnergyOutlooks", energyOutlookSchema, "EnergyOutlooks");
+module.exports = mongoose.model("EnergyOutlooks", energyOutlookSchema);

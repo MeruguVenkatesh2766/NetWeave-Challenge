@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import CircularIndeterminate from '../helpers/progess';
 
-const AreaChart = ({ data, totalPercentageKey, typeKey }) => {
+const AreaChart = ({ data, totalPercentageKey, typeKey, loading }) => {
   const chartRef = useRef();
+  let height = 0.6*window.innerHeight;
+  let marginBottom = 0;
 
   useEffect(() => {
     if (data && chartRef.current) {
@@ -10,10 +13,10 @@ const AreaChart = ({ data, totalPercentageKey, typeKey }) => {
       d3.select(chartRef.current).selectAll('*').remove();
 
       const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
-      const height = 0.6 * window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
+      height = 0.6 * window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
       const marginTop = 20;
       const marginRight = 20;
-      const marginBottom = 40; // Increased bottom margin to accommodate x-axis labels
+      marginBottom = 80; // Increased bottom margin to accommodate x-axis labels
       const marginLeft = 40; // Increased left margin to accommodate y-axis labels
 
       // Filter and sum totalPercentageKey for each unique sector
@@ -110,7 +113,11 @@ const AreaChart = ({ data, totalPercentageKey, typeKey }) => {
     }
   }, [data]);
 
-  return <div ref={chartRef}></div>;
+  return(
+    <>
+    {loading ?
+              <CircularIndeterminate minimumHeight={height + marginBottom}/> :<div style={{height:height+marginBottom}} ref={chartRef}></div>}
+    </> )
 };
 
 export default AreaChart;

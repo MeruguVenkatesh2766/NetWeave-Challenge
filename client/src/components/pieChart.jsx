@@ -1,11 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { Grid } from "@mui/material"
+import { Grid } from "@mui/material";
+import CircularIndeterminate from '../helpers/progess';
 
-const PieChart = ({ data, totalPercentageKey, typeKey }) => {
+
+const PieChart = ({ data, totalPercentageKey, typeKey, loading }) => {
 
     const chartRef = useRef();
     const legendRef = useRef();
+    let height = 0.3*window.innerHeight;
+
 
     useEffect(() => {
         if (data && chartRef.current && legendRef.current) {
@@ -31,7 +35,7 @@ const PieChart = ({ data, totalPercentageKey, typeKey }) => {
             const pieData = Array.from(sectorMap.entries()).map(([typeKey, totalPercentageValue]) => ({ typeKey, totalPercentageValue }));
 
             const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
-            const height = 0.3*window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
+            height = 0.3*window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
 
             // Reset color scale domain
             const uniqueSectors = [...new Set(pieData.map(d => d.typeKey))]; // Ensure unique sectors
@@ -113,24 +117,19 @@ const PieChart = ({ data, totalPercentageKey, typeKey }) => {
     }, [data]);
 
     return (
-        <Grid container justifyContent="space-around" alignItems="center">
-            {data.length > 0 ? (
-                <>
+        <>
+            {loading ?
+                <CircularIndeterminate minimumHeight={height} /> :
+                <Grid container justifyContent="space-around" alignItems="center">
                     <Grid item xs={12} sm={7} md={5}>
                         <svg ref={chartRef}></svg>
                     </Grid>
                     <Grid item xs={12} sm={9} md={7}>
-                        <div ref={legendRef}></div>
+                        <div style={{height:'100%', padding:'10px 0'}} ref={legendRef}></div>
                     </Grid>
-                </>
-            ) : (
-                <Grid item xs={12} style={{ minHeight: '165px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    No data
                 </Grid>
-            )}
-        </Grid>
-
-    );
+                }
+        </>)
 };
 
 export default PieChart;

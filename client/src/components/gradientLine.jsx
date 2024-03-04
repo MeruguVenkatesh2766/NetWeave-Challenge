@@ -1,17 +1,20 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
+import CircularIndeterminate from '../helpers/progess';
 
-const GradientLineChart = ({ data, totalPercentageKey, typeKey }) => {
+const GradientLineChart = ({ data, totalPercentageKey, typeKey, loading }) => {
   const chartRef = useRef();
+  let height = 0.6*window.innerHeight;
+  let marginBottom = 0;
 
   useEffect(() => {
     if (data && chartRef.current) {
       d3.select(chartRef.current).selectAll("*").remove();
       const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
-      const height = 0.6 * window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
+      height = 0.6 * window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
       const marginTop = 10;
       const marginRight = 10;
-      const marginBottom = 40;
+      marginBottom = 80;
       const marginLeft = 40;
 
       // Filter and sum totalPercentageKey for each unique sector
@@ -123,7 +126,11 @@ const GradientLineChart = ({ data, totalPercentageKey, typeKey }) => {
     }
   }, [data]);
 
-  return <div ref={chartRef}></div>;
+  return(
+    <>
+    {loading ?
+              <CircularIndeterminate minimumHeight={height + marginBottom}/> :<div style={{height:height+marginBottom}} ref={chartRef}></div>}
+    </> )
 };
 
 export default GradientLineChart;

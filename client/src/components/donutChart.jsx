@@ -1,43 +1,45 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { Grid } from "@mui/material"
+import CircularIndeterminate from '../helpers/progess';
 
-const DonutChart = ({ data, totalPercentageKey, typeKey }) => {
+const DonutChart = ({ data, totalPercentageKey, typeKey, loading }) => {
     const chartRef = useRef();
     const legendRef = useRef();
+    let height = 0.3 * window.innerHeight;
 
     useEffect(() => {
         if (data && chartRef.current && legendRef.current) {
             d3.select(chartRef.current).selectAll("*").remove();
             d3.select(legendRef.current).selectAll("*").remove();
 
-           // Filter and sum totalPercentageKey for each unique sector
-           const sectorMap = new Map();
-           let totalSum = 0;
-           data.forEach(item => {
-               const valueToSum = parseInt(item[totalPercentageKey]); // Correct way to access object property dynamically
-               if (!isNaN(valueToSum)) { // Check if it's a valid number
-                   totalSum += valueToSum;
-                   if (sectorMap.has(item[typeKey])) {
-                       sectorMap.set(item[typeKey], sectorMap.get(item[typeKey]) + valueToSum);
-                   } else {
-                       sectorMap.set(item[typeKey], valueToSum);
-                   }
-               }
-           });
+            // Filter and sum totalPercentageKey for each unique sector
+            const sectorMap = new Map();
+            let totalSum = 0;
+            data.forEach(item => {
+                const valueToSum = parseInt(item[totalPercentageKey]); // Correct way to access object property dynamically
+                if (!isNaN(valueToSum)) { // Check if it's a valid number
+                    totalSum += valueToSum;
+                    if (sectorMap.has(item[typeKey])) {
+                        sectorMap.set(item[typeKey], sectorMap.get(item[typeKey]) + valueToSum);
+                    } else {
+                        sectorMap.set(item[typeKey], valueToSum);
+                    }
+                }
+            });
 
-           // Prepare data for pie chart
-           const pieData = Array.from(sectorMap.entries()).map(([typeKey, totalPercentageValue]) => ({ typeKey, totalPercentageValue }));
+            // Prepare data for pie chart
+            const pieData = Array.from(sectorMap.entries()).map(([typeKey, totalPercentageValue]) => ({ typeKey, totalPercentageValue }));
 
-           const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
-           const height = 0.3*window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
+            const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
+            height = 0.3 * window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
 
-           // Reset color scale domain
-           const uniqueSectors = [...new Set(pieData.map(d => d.typeKey))]; // Ensure unique sectors
-           const color = d3.scaleOrdinal()
+            // Reset color scale domain
+            const uniqueSectors = [...new Set(pieData.map(d => d.typeKey))]; // Ensure unique sectors
+            const color = d3.scaleOrdinal()
                 .domain(uniqueSectors)
                 .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), uniqueSectors.length).reverse());
-            
+
             // Choose the minimum dimension to ensure the chart fits within the container
             const diameter = Math.min(width, height);
             const radius = diameter / 2;
@@ -55,7 +57,7 @@ const DonutChart = ({ data, totalPercentageKey, typeKey }) => {
             const pie = d3.pie()
                 .padAngle(1 / radius)
                 .sort(null)
-                .value(d =>d.totalPercentageValue);
+                .value(d => d.totalPercentageValue);
 
             const arcs = pie(pieData);
 
@@ -117,23 +119,19 @@ const DonutChart = ({ data, totalPercentageKey, typeKey }) => {
     }, [data]);
 
     return (
-        <Grid container justifyContent="space-around" alignItems="center">
-            {data.length > 0 ? (
-                <>
+        <>
+            {loading && data?.length>0 ?
+                <CircularIndeterminate minimumHeight={height} /> :
+                <Grid container justifyContent="space-around" alignItems="center">
                     <Grid item xs={12} sm={7} md={5}>
                         <svg ref={chartRef}></svg>
                     </Grid>
                     <Grid item xs={12} sm={9} md={7}>
-                        <div ref={legendRef}></div>
+                        <div style={{height:'100%', padding:'10px 0'}}  ref={legendRef}></div>
                     </Grid>
-                </>
-            ) : (
-                <Grid item xs={12} style={{ minHeight: '165px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    No data
-                </Grid>
-            )}
-        </Grid>
-    );
+                </Grid>}
+        </>)
+
 };
 
 export default DonutChart;

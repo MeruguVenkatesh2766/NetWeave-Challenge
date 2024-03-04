@@ -1,17 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import CircularIndeterminate from '../helpers/progess';
 
-const BarChart = ({ data, totalPercentageKey, typeKey }) => {
+const BarChart = ({ data, totalPercentageKey, typeKey, loading }) => {
   const chartRef = useRef();
+  let height = 0.6*window.innerHeight;
+  let marginBottom = 0;
 
   useEffect(() => {
     if (!data || data.length === 0) return;
 
     const width = chartRef.current.parentElement.clientWidth; // Set the width to the parent element's width
-    const height = 0.6*window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
+    height = 0.6*window.innerHeight || chartRef.current.parentElement.clientHeight; // Set the height to the parent element's height
     const marginTop = 20;
-    const marginRight = 20;
-    const marginBottom = 40; // Increased bottom margin to accommodate x-axis labels
+    const marginRight = 40;
+    marginBottom = 80; // Increased bottom margin to accommodate x-axis labels
     const marginLeft = 40; // Increased left margin to accommodate y-axis labels
 
     // Clear the chart container
@@ -46,10 +49,10 @@ const BarChart = ({ data, totalPercentageKey, typeKey }) => {
       .nice()
       .range([height - marginBottom, marginTop]);
 
-    const svg = d3.select(chartRef.current)
+      const svg = d3.select(chartRef.current)
       .append("svg")
       .attr("width", width)
-      .attr("height", height + marginBottom) // Removed the extra padding
+      .attr("height", height + marginBottom)
 
     const bars = svg.selectAll("rect")
       .data(data)
@@ -76,7 +79,11 @@ const BarChart = ({ data, totalPercentageKey, typeKey }) => {
 
   }, [data]);
 
-  return <div ref={chartRef}></div>;
+  return(
+  <>
+  {loading ?
+            <CircularIndeterminate minimumHeight={height + marginBottom}/> :<div style={{height:height+marginBottom}} ref={chartRef}></div>}
+  </> )
 };
 
 export default BarChart;

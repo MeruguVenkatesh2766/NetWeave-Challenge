@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Card, CardContent, Button, Typography } from "@mui/material";
+import { Grid, Card, CardContent, Button, Typography, CircularProgress } from "@mui/material";
 import PieChart from './components/pieChart';
 import DonutChart from './components/donutChart';
 import BarChart from './components/barChart';
@@ -9,11 +9,13 @@ import StackedAreaChart from './components/stackedAreaChart';
 import { getJSONdata } from './apis/getData';
 import CustomBox from './helpers/customBox';
 import AppBar from './components/appBar';
+import ErrorBoundary from './helpers/errorBoundary';
 
 const optionKeys = ['topic', 'sector'];
 
 function App() {
-  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null)
   const [optionsData, setOptionsData] = useState({
     [optionKeys[0]]: [],
     [optionKeys[1]]: []
@@ -68,11 +70,14 @@ function App() {
   };
 
   const fetchApiData = async () => {
+    setLoading(true);
     try {
       return await getJSONdata();
     } catch (error) {
       console.error('Error fetching data:', error);
-      return [];
+      // return [];
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,130 +95,132 @@ function App() {
   }, []);
 
   return (
-    <>
-      <AppBar />
-      <Grid container spacing={2} style={{ padding: '20px', backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Filters</Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <CustomSelect
-                    value={filters.topic}
-                    onChange={(e, value) => handleFilterChange(optionKeys[0], value)}
-                    options={optionsData[optionKeys[0]]}
-                    defaultLabel={optionKeys[0]}
-                  />
+    <ErrorBoundary>
+      <>
+        <AppBar />
+        <Grid container spacing={2} style={{ padding: '20px', backgroundColor: 'rgba(0, 0, 0, 0.06)' }}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Filters</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <CustomSelect
+                      value={filters.topic}
+                      onChange={(e, value) => handleFilterChange(optionKeys[0], value)}
+                      options={optionsData[optionKeys[0]]}
+                      defaultLabel={optionKeys[0]}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <CustomSelect
+                      value={filters.sector}
+                      onChange={(e, value) => handleFilterChange(optionKeys[1], value)}
+                      options={optionsData[optionKeys[1]]}
+                      defaultLabel={optionKeys[1]}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6} display="flex" justifyContent="end" gap="10px">
+                    <Button size='small' variant="contained" onClick={handleReset}>Reset</Button>
+                    <Button size='small' variant="contained" onClick={handleSearch}>Search</Button>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <CustomSelect
-                    value={filters.sector}
-                    onChange={(e, value) => handleFilterChange(optionKeys[1], value)}
-                    options={optionsData[optionKeys[1]]}
-                    defaultLabel={optionKeys[1]}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={12} md={6} display="flex" justifyContent="end" gap="10px">
-                  <Button size='small' variant="contained" onClick={handleReset}>Reset</Button>
-                  <Button size='small' variant="contained" onClick={handleSearch}>Search</Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        <Grid item xs={12}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={12} md={12}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Bar Chart">
-                    <MemoizedBarChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
+          <Grid item xs={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={12} md={12}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Bar Chart">
+                      <MemoizedBarChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={12}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Gradient Line Chart">
+                      <MemoizedGradientLineChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Pestle"} heading="Pie Chart">
+                      <MemoizedPieChart data={data} totalPercentageKey={"intensity"} typeKey={"pestle"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Donut Chart">
+                      <MemoizedDonutChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={12}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Area Chart">
+                      <MemoizedStackedAreaChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={12} md={12}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Gradient Line Chart">
-                    <MemoizedGradientLineChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Pestle"} heading="Pie Chart">
-                    <MemoizedPieChart data={data} totalPercentageKey={"intensity"} typeKey={"pestle"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Donut Chart">
-                    <MemoizedDonutChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={12}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Area Chart">
-                    <MemoizedStackedAreaChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Donut Chart">
+                      <MemoizedDonutChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Pestle"} heading="Pie Chart">
+                      <MemoizedPieChart data={data} totalPercentageKey={"intensity"} typeKey={"pestle"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Bar Chart">
+                      <MemoizedBarChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Area Chart">
+                      <MemoizedStackedAreaChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} loading={loading} />
+                    </CustomBox>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Donut Chart">
-                    <MemoizedDonutChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Pestle"} heading="Pie Chart">
-                    <MemoizedPieChart data={data} totalPercentageKey={"intensity"} typeKey={"pestle"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Intensity"} yAxisLabel={"Region"} heading="Bar Chart">
-                    <MemoizedBarChart data={data} totalPercentageKey={"intensity"} typeKey={"region"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6}>
-              <Card>
-                <CardContent>
-                  <CustomBox xAxisLabel={"Likelihood"} yAxisLabel={"Added"} heading="Area Chart">
-                    <MemoizedStackedAreaChart data={data} totalPercentageKey={"likelihood"} typeKey={"added"} />
-                  </CustomBox>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-    </>
+      </>
+    </ErrorBoundary>
   );
 }
 

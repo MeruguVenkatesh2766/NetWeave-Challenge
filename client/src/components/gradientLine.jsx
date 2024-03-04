@@ -49,10 +49,9 @@ const GradientLineChart = ({ data, totalPercentageKey, typeKey }) => {
       
       // Iterate over the original sectorMap and update values in sortedSectorMap
       sectorMap.forEach((value, key) => {
-          const month = key.split(',')[0]; // Extract the month from the key
-          if (monthsList.includes(month)) {
-              sortedSectorMap.set(month, sortedSectorMap.get(month) + value);
-          }
+        const date = new Date(key);
+        const month = monthsList[date.getMonth()];
+        sortedSectorMap.set(month, sortedSectorMap.get(month) + value);
       });
       
       // Convert the Map to an array of objects
